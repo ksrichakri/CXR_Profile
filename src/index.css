@@ -1,0 +1,153 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  /* CXR Color Palette */
+  --bg-color: #FFFFFF;
+  --bg-color-alt: #F8F9Fa;
+  --accent-color: #007367;
+  --accent-highlight: #009988;
+  --accent-dark: #004d45;
+  --text-main: #1A1A1A;
+  --text-muted: #666666;
+  --border-color: rgba(0, 115, 103, 0.15);
+  
+  /* Typography */
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-display: 'Outfit', system-ui, sans-serif;
+
+  /* Glassmorphism / Depth */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 115, 103, 0.1);
+  --glass-blur: blur(12px);
+
+  /* Curves */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
+  
+  /* Animation */
+  --ease-smooth: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Reset & Basics */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: var(--font-sans);
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--text-main);
+  margin-bottom: 1rem;
+}
+
+p {
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  color: var(--text-muted);
+}
+
+a {
+  color: var(--accent-color);
+  text-decoration: none;
+  transition: color 0.3s var(--ease-smooth);
+}
+
+a:hover {
+  color: var(--accent-highlight);
+}
+
+/* Utility Classes */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: var(--radius-md);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--accent-dark) 0%, var(--accent-highlight) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.section-padding {
+  padding: 8rem 0;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--accent-color);
+  color: #fff;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s var(--ease-smooth);
+  font-family: var(--font-sans);
+}
+
+.btn-primary:hover {
+  background-color: var(--accent-highlight);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 115, 103, 0.3);
+  color: #fff;
+}
+
+/* GSAP Specific Setup */
+/* We fix the canvas to the background, allowing sections to scroll over it */
+#canvas-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  pointer-events: none; /* Let clicks pass through to UI */
+}
+
+/* Base Layout for Portfolio Sections to scroll transparently over canvas */
+.portfolio-wrapper {
+  position: relative;
+  z-index: 1; 
+}
+
+/* Inventory System Specific Overlay (to keep it isolated from the 3D canvas if needed) */
+.inventory-sys-wrapper {
+  background-color: var(--bg-color-alt);
+  min-height: 100vh;
+  position: relative;
+  z-index: 10;
+}
