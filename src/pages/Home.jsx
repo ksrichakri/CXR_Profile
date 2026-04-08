@@ -1,15 +1,35 @@
-import React, { useLayoutEffect, useRef } from 'react';
+import React, { useLayoutEffect, useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ChevronRight, MapPin, Activity, Settings, Users, ArrowRight } from 'lucide-react';
+import { ChevronRight, MapPin, Activity, Settings, Users, ArrowRight, Target, Eye, Cpu, MonitorPlay, Infinity } from 'lucide-react';
 import ThreeCanvas from '../components/ThreeCanvas';
-// Using global index.css for styling
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import { db } from "../firebase/firebaseConfig";
+import { collection, getDocs } from "firebase/firestore";
 
 gsap.registerPlugin(ScrollTrigger);
 
 const Home = () => {
   const mainRef = useRef();
+  const [projects, setProjects] = useState([]);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const snapshot = await getDocs(collection(db, "projects_showcase"));
+        const list = [];
+        snapshot.forEach((docSnap) => {
+          list.push({ id: docSnap.id, ...docSnap.data() });
+        });
+        setProjects(list);
+      } catch (err) {
+        console.error("Failed to fetch projects:", err);
+      }
+    };
+    fetchProjects();
+  }, []);
 
   useLayoutEffect(() => {
     let ctx = gsap.context(() => {
@@ -20,7 +40,7 @@ const Home = () => {
           { y: 50, opacity: 0 },
           { 
             y: 0, opacity: 1, duration: 1, ease: 'power3.out',
-            scrollTrigger: { trigger: el, start: 'top 80%', end: 'bottom 20%', toggleActions: 'play none none reverse' }
+            scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none reverse' }
           }
         );
       });
@@ -39,23 +59,33 @@ const Home = () => {
         );
       });
       
+      // Horizontal Scroll for "Work Section"
+      const horizontalContainer = document.querySelector('.horizontal-scroll-container');
+      if (horizontalContainer) {
+        gsap.to(horizontalContainer, {
+          x: () => -(horizontalContainer.scrollWidth - window.innerWidth) + "px",
+          ease: "none",
+          scrollTrigger: {
+            trigger: "#work-section",
+            start: "top top",
+            end: () => "+=" + horizontalContainer.scrollWidth,
+            pin: true,
+            scrub: 1,
+            invalidateOnRefresh: true,
+          }
+        });
+      }
+      
     }, mainRef);
 
     return () => ctx.revert();
-  }, []);
+  }, [projects]); // Re-run GSAP when projects load
 
   return (
     <div ref={mainRef} className="portfolio-wrapper">
       <ThreeCanvas />
 
-      {/* Navbar overlay */}
-      <nav style={{ position: 'fixed', top: 0, width: '100%', padding: '20px 40px', display: 'flex', justifyContent: 'space-between', zIndex: 50, mixBlendMode: 'difference', color: '#fff' }}>
-        <h2 style={{ margin: 0, color: '#fff' }}>CXR</h2>
-        <div style={{ display: 'flex', gap: '20px' }}>
-          <Link to="/request" style={{ color: '#fff' }}>Inventory</Link>
-          <Link to="/admin" style={{ color: '#fff' }}>Admin Login</Link>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* SECTION: Hero */}
       <section id="hero-section" style={{ height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 10%' }}>
@@ -66,22 +96,70 @@ const Home = () => {
           Shaping the future of immersive computing through AR, VR, and mixed environments.
         </p>
         <div className="reveal-text" style={{ marginTop: '30px' }}>
-          <button className="btn-primary">Explore Our Vision <ChevronRight size={20} style={{marginLeft: '8px'}} /></button>
+          <button className="btn-primary" onClick={() => document.getElementById('mission-section').scrollIntoView({ behavior: 'smooth' })}>
+            Explore Our Vision <ChevronRight size={20} style={{marginLeft: '8px'}} />
+          </button>
         </div>
       </section>
 
-      {/* SECTION: What is CXR */}
-      <section id="about-section" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', padding: '0 10%', background: 'linear-gradient(rgba(255,255,255,0), rgba(255,255,255,0.9))' }}>
-        <div className="glass-panel text-content" style={{ padding: '60px', maxWidth: '800px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <h2 className="text-gradient reveal-text" style={{ fontSize: '3rem' }}>Redefining Boundaries</h2>
-          <p className="reveal-text" style={{ fontSize: '1.2rem', color: '#444' }}>
-            The Centre for Extended Reality (CXR) is a specialized lab dedicated to pushing the technical limits of Augmented and Virtual Reality. We blend engineering with human-computer interaction to build the next generation of spatial computing architectures.
-          </p>
+      {/* SECTION: Mission & Vision */}
+      <section id="mission-section" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', padding: '100px 10%', background: 'linear-gradient(rgba(255,255,255,0), rgba(255,255,255,0.95))' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '40px', width: '100%' }}>
+          
+          <div className="glass-panel text-content reveal-text" style={{ padding: '60px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <Target size={48} color="var(--accent-color)" />
+            <h2 className="text-gradient" style={{ fontSize: '2.5rem' }}>Our Mission</h2>
+            <p style={{ fontSize: '1.2rem', color: '#444', lineHeight: 1.6 }}>
+              To empower students, researchers, and industry leaders by providing cutting-edge infrastructure and expertise in spatial computing. We strive to solve real-world problems through multidisciplinary technical innovation and hands-on learning in AR, VR, and MR.
+            </p>
+          </div>
+
+          <div className="glass-panel text-content reveal-text" style={{ padding: '60px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <Eye size={48} color="var(--accent-color)" />
+            <h2 className="text-gradient" style={{ fontSize: '2.5rem' }}>Our Vision</h2>
+            <p style={{ fontSize: '1.2rem', color: '#444', lineHeight: 1.6 }}>
+              To be a globally recognized hub for extended reality research and development, bridging the gap between imaginative concepts and accessible digital realities. We envision a future where spatial interfaces seamlessly augment human intellect and capabilities.
+            </p>
+          </div>
+
+        </div>
+      </section>
+
+      {/* SECTION: Fields of Work (Horizontal Scroll) */}
+      <section id="work-section" style={{ height: '100vh', overflow: 'hidden', position: 'relative', background: 'transparent' }}>
+        <h2 className="reveal-text text-gradient" style={{ fontSize: '3rem', position: 'absolute', top: '10%', left: '10%', zIndex: 2 }}>Fields of Work</h2>
+        
+        <div className="horizontal-scroll-container" style={{ display: 'flex', width: '400vw', height: '100%', alignItems: 'center', paddingLeft: '10vw' }}>
+          
+          <div className="glass-panel" style={{ width: '70vw', height: '50vh', flexShrink: 0, marginRight: '10vw', padding: '60px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <MonitorPlay size={64} color="var(--accent-color)" style={{ marginBottom: '30px' }} />
+            <h3 style={{ fontSize: '2.5rem', marginBottom: '20px' }}>Virtual Reality (VR)</h3>
+            <p style={{ fontSize: '1.2rem', color: 'var(--text-muted)' }}>Creating fully immersive digital environments for training, simulation, and entertainment using state-of-the-art headsets.</p>
+          </div>
+          
+          <div className="glass-panel" style={{ width: '70vw', height: '50vh', flexShrink: 0, marginRight: '10vw', padding: '60px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <Eye size={64} color="var(--accent-color)" style={{ marginBottom: '30px' }} />
+            <h3 style={{ fontSize: '2.5rem', marginBottom: '20px' }}>Augmented Reality (AR)</h3>
+            <p style={{ fontSize: '1.2rem', color: 'var(--text-muted)' }}>Overlaying dynamic digital information onto the physical world, enhancing situational awareness and interactivity.</p>
+          </div>
+          
+          <div className="glass-panel" style={{ width: '70vw', height: '50vh', flexShrink: 0, marginRight: '10vw', padding: '60px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <Infinity size={64} color="var(--accent-color)" style={{ marginBottom: '30px' }} />
+            <h3 style={{ fontSize: '2.5rem', marginBottom: '20px' }}>Mixed Reality (MR)</h3>
+            <p style={{ fontSize: '1.2rem', color: 'var(--text-muted)' }}>Blending physical and digital worlds where physical and digital objects co-exist and interact in real-time.</p>
+          </div>
+          
+          <div className="glass-panel" style={{ width: '70vw', height: '50vh', flexShrink: 0, marginRight: '20vw', padding: '60px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <Cpu size={64} color="var(--accent-color)" style={{ marginBottom: '30px' }} />
+            <h3 style={{ fontSize: '2.5rem', marginBottom: '20px' }}>Spatial Tracking</h3>
+            <p style={{ fontSize: '1.2rem', color: 'var(--text-muted)' }}>Advanced algorithmic research into inside-out tracking, hand tracking, and spatial mapping utilizing neural networks.</p>
+          </div>
+          
         </div>
       </section>
 
       {/* SECTION: Facts / Stats */}
-      <section id="facts-section" style={{ padding: '100px 10%', display: 'flex', justifyContent: 'space-between', gap: '40px', flexWrap: 'wrap', backgroundColor: 'var(--bg-color-alt)' }}>
+      <section id="facts-section" style={{ padding: '100px 10%', display: 'flex', justifyContent: 'space-between', gap: '40px', flexWrap: 'wrap', backgroundColor: 'var(--bg-color)' }}>
         <div className="glass-panel" style={{ flex: 1, padding: '40px', textAlign: 'center' }}>
           <Activity size={40} color="var(--accent-color)" style={{ marginBottom: '20px' }} />
           <h3 style={{ fontSize: '4rem', margin: 0 }} className="stat-counter" data-target="150">0</h3>
@@ -100,22 +178,39 @@ const Home = () => {
       </section>
 
       {/* SECTION: Projects */}
-      <section id="projects-section" style={{ padding: '100px 10%', background: 'var(--bg-color)' }}>
+      <section id="projects-section" style={{ padding: '100px 10%', background: 'var(--bg-color-alt)' }}>
         <h2 className="reveal-text text-gradient" style={{ fontSize: '3rem', textAlign: 'center', marginBottom: '60px' }}>Ongoing Innovations</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '40px' }}>
-          {[1,2,3].map(i => (
-            <div key={i} className="glass-panel reveal-text" style={{ overflow: 'hidden', cursor: 'pointer', transition: 'transform 0.4s ease' }} onMouseOver={e => e.currentTarget.style.transform='scale(1.05)'} onMouseOut={e => e.currentTarget.style.transform='scale(1)'}>
-              <div style={{ height: '200px', backgroundColor: 'var(--accent-color)', opacity: 0.2 }}></div>
-              <div style={{ padding: '30px' }}>
-                <h3>Project Alpha {i}</h3>
-                <p>Advanced spatial tracking mechanisms utilizing neural network rendering for mixed reality.</p>
-                <div style={{ display: 'flex', alignItems: 'center', color: 'var(--accent-color)', fontWeight: 600 }}>
-                  View Demo <ArrowRight size={16} style={{marginLeft:'8px'}}/>
+        
+        {projects.length === 0 ? (
+           <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>No projects available yet.</p>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '40px' }}>
+            {projects.map((project) => (
+              <div key={project.id} className="glass-panel reveal-text" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ 
+                  height: '200px', 
+                  backgroundColor: 'var(--accent-color)', 
+                  opacity: project.imageUrl ? 1 : 0.2,
+                  backgroundImage: project.imageUrl ? `url(${project.imageUrl})` : 'none',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center'
+                }}></div>
+                <div style={{ padding: '30px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <h3 style={{ marginBottom: '10px' }}>{project.title}</h3>
+                  <p style={{ color: 'var(--text-muted)', flex: 1 }}>{project.description}</p>
+                  
+                  {project.repoLink && (
+                    <a href={project.repoLink} target="_blank" rel="noreferrer" style={{ 
+                      display: 'inline-flex', alignItems: 'center', color: 'var(--accent-color)', fontWeight: 600, textDecoration: 'none', marginTop: '20px' 
+                    }}>
+                      View Repository <ArrowRight size={16} style={{marginLeft:'8px'}}/>
+                    </a>
+                  )}
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* SECTION: Collaborators (Marquee) */}
@@ -155,7 +250,7 @@ const Home = () => {
       </section>
 
       {/* SECTION: Location & Lab */}
-      <section id="location-section" style={{ padding: '100px 10%', display: 'flex', alignItems: 'center', gap: '40px', flexWrap: 'wrap' }}>
+      <section id="location-section" style={{ padding: '100px 10%', display: 'flex', alignItems: 'center', gap: '40px', flexWrap: 'wrap', marginBottom: '50px' }}>
         <div className="reveal-text" style={{ flex: 1, minWidth: '300px' }}>
           <h2 className="text-gradient" style={{ fontSize: '3rem' }}>Our Laboratory</h2>
           <p>
@@ -171,13 +266,7 @@ const Home = () => {
         </div>
       </section>
 
-      <footer style={{ padding: '40px 10%', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <p style={{ margin: 0 }}>© 2026 Centre for Extended Reality</p>
-        <div style={{ display: 'flex', gap: '20px' }}>
-          <a href="#">Twitter</a>
-          <a href="#">LinkedIn</a>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };

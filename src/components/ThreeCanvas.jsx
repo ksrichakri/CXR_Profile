@@ -49,10 +49,10 @@ const StandaloneVRHeadsetModel = () => {
       tl.to(scrollGroupRef.current.position, { z: 2, ease: "none" })
         .to(scrollGroupRef.current.rotation, { z: -Math.PI / 12, ease: "none" }, 0);
 
-      // About section tween
+      // Mission section tween
       const tl2 = gsap.timeline({
         scrollTrigger: {
-          trigger: '#about-section',
+          trigger: '#mission-section',
           start: 'top center',
           end: 'bottom center',
           scrub: 1,
@@ -60,6 +60,19 @@ const StandaloneVRHeadsetModel = () => {
       });
       tl2.to(scrollGroupRef.current.position, { x: 1.5, z: -1, ease: 'none' })
         .to(scrollGroupRef.current.rotation, { y: Math.PI / 2.5, ease: 'none' }, 0);
+        
+      // Work section tween
+      const tl3 = gsap.timeline({
+        scrollTrigger: {
+          trigger: '#work-section',
+          start: 'top top', // Start when pinned horizontal scroll starts
+          end: () => "+=" + (document.querySelector('.horizontal-scroll-container')?.scrollWidth || window.innerWidth * 4),
+          scrub: 1,
+          invalidateOnRefresh: true,
+        }
+      });
+      tl3.to(scrollGroupRef.current.position, { x: -1.5, z: 1, ease: 'none' })
+        .to(scrollGroupRef.current.rotation, { y: -Math.PI / 3, z: Math.PI / 12, ease: 'none' }, 0);
     });
 
     return () => ctx.revert();

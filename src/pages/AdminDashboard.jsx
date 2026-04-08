@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { Link } from "react-router-dom"
 import { db } from "../firebase/firebaseConfig"
 
 import {
@@ -8,7 +9,8 @@ import {
     addDoc,
     doc,
     query,
-    where
+    where,
+    deleteDoc
 } from "firebase/firestore"
 
 import emailjs from "@emailjs/browser"
@@ -24,9 +26,14 @@ export default function AdminDashboard() {
         approved: 0
     })
 
+    // PROJECT SHOWCASE
+    const [showcaseProjects, setShowcaseProjects] = useState([])
+    const [newProject, setNewProject] = useState({ title: "", description: "", repoLink: "", imageUrl: "" })
+
     useEffect(() => {
         loadRequests()
         loadInventory()
+        loadShowcaseProjects()
     }, [])
 
     const loadRequests = async () => {
@@ -89,6 +96,37 @@ export default function AdminDashboard() {
         const productRef = doc(db, "products", id)
         await updateDoc(productRef, { available: newQty })
         loadInventory()
+    }
+
+    // PROJECT FUNCTIONS
+    const loadShowcaseProjects = async () => {
+        const snapshot = await getDocs(collection(db, "projects_showcase"))
+        const list = []
+        snapshot.forEach(docSnap => {
+            list.push({ id: docSnap.id, ...docSnap.data() })
+        })
+        setShowcaseProjects(list)
+    }
+
+    const handleAddProject = async (e) => {
+        e.preventDefault()
+        if (!newProject.title.trim() || !newProject.description.trim()) return
+        await addDoc(collection(db, "projects_showcase"), {
+            title: newProject.title,
+            description: newProject.description,
+            repoLink: newProject.repoLink,
+            imageUrl: newProject.imageUrl,
+            createdAt: new Date()
+        })
+        setNewProject({ title: "", description: "", repoLink: "", imageUrl: "" })
+        loadShowcaseProjects()
+    }
+
+    const handleDeleteProject = async (id) => {
+        if(window.confirm("Are you sure you want to delete this project?")) {
+            await deleteDoc(doc(db, "projects_showcase", id))
+            loadShowcaseProjects()
+        }
     }
 
     // EMAIL FUNCTION
@@ -235,7 +273,10 @@ export default function AdminDashboard() {
         <div className="inventory-sys-wrapper" style={{ padding: "80px 40px", minHeight: "100vh" }}>
 
             <div className="container">
-                <h1 className="text-gradient" style={{ fontSize: "2.5rem", marginBottom: "40px" }}>CXR Admin Dashboard</h1>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "40px" }}>
+                    <h1 className="text-gradient" style={{ fontSize: "2.5rem", margin: 0 }}>CXR Admin Dashboard</h1>
+                    <Link to="/" className="btn-primary" style={{ padding: "10px 20px", textDecoration: "none" }}>&larr; Back to Home</Link>
+                </div>
 
                 {/* Stats */}
                 <div style={{
@@ -460,6 +501,101 @@ export default function AdminDashboard() {
                             {inventory.length === 0 && (
                                 <tr>
                                     <td colSpan="3" style={{ ...tdStyle, textAlign: "center", color: "var(--text-muted)" }}>No inventory devices found.</td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Project Management Section */}
+                <div className="glass-panel" style={{ padding: "30px", marginTop: "50px", overflowX: "auto" }}>
+                    <h2 style={{ marginBottom: "20px", color: "var(--text-main)" }}>Project Showcase Management</h2>
+                    
+                    <form onSubmit={handleAddProject} style={{
+                        display: "flex", gap: "15px", marginBottom: "30px", alignItems: "flex-end", flexWrap: "wrap"
+                    }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "5px", flex: "1", minWidth: "200px" }}>
+                            <label style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>Project Title</label>
+                            <input 
+                                type="text" 
+                                value={newProject.title}
+                                onChange={(e) => setNewProject({...newProject, title: e.target.value})}
+                                style={{
+                                    padding: "10px 15px", borderRadius: "8px", border: "1px solid var(--border-color)",
+                                    backgroundColor: "rgba(255, 255, 255, 0.05)", color: "var(--text-main)"
+                                }} 
+                                required
+                            />
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "5px", flex: "2", minWidth: "300px" }}>
+                            <label style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>Description</label>
+                            <input 
+                                type="text" 
+                                value={newProject.description}
+                                onChange={(e) => setNewProject({...newProject, description: e.target.value})}
+                                style={{
+                                    padding: "10px 15px", borderRadius: "8px", border: "1px solid var(--border-color)",
+                                    backgroundColor: "rgba(255, 255, 255, 0.05)", color: "var(--text-main)"
+                                }} 
+                                required
+                            />
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "5px", flex: "1", minWidth: "150px" }}>
+                            <label style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>Repository Link</label>
+                            <input 
+                                type="url" 
+                                value={newProject.repoLink}
+                                onChange={(e) => setNewProject({...newProject, repoLink: e.target.value})}
+                                style={{
+                                    padding: "10px 15px", borderRadius: "8px", border: "1px solid var(--border-color)",
+                                    backgroundColor: "rgba(255, 255, 255, 0.05)", color: "var(--text-main)"
+                                }} 
+                            />
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "5px", flex: "1", minWidth: "150px" }}>
+                            <label style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>Image URL</label>
+                            <input 
+                                type="url" 
+                                value={newProject.imageUrl}
+                                onChange={(e) => setNewProject({...newProject, imageUrl: e.target.value})}
+                                style={{
+                                    padding: "10px 15px", borderRadius: "8px", border: "1px solid var(--border-color)",
+                                    backgroundColor: "rgba(255, 255, 255, 0.05)", color: "var(--text-main)"
+                                }} 
+                            />
+                        </div>
+                        <button type="submit" className="btn-primary" style={{ padding: "10px 20px", height: "42px" }}>
+                            Add Project
+                        </button>
+                    </form>
+
+                    <table style={tableStyle}>
+                        <thead>
+                            <tr>
+                                <th style={thStyle}>Image</th>
+                                <th style={thStyle}>Title</th>
+                                <th style={thStyle}>Description</th>
+                                <th style={thStyle}>Link</th>
+                                <th style={thStyle}>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {showcaseProjects.map((p) => (
+                                <tr key={p.id} style={trStyle}>
+                                    <td style={tdStyle}>
+                                        {p.imageUrl ? <img src={p.imageUrl} alt={p.title} style={{ width: "50px", height: "50px", objectFit: "cover", borderRadius: "5px" }} /> : "N/A"}
+                                    </td>
+                                    <td style={tdStyle}><strong>{p.title}</strong></td>
+                                    <td style={tdStyle}>{p.description.substring(0, 50)}...</td>
+                                    <td style={tdStyle}>{p.repoLink ? <a href={p.repoLink} target="_blank" rel="noreferrer" style={{ color: "var(--accent-color)" }}>Repo</a> : "None"}</td>
+                                    <td style={tdStyle}>
+                                        <button onClick={() => handleDeleteProject(p.id)} className="btn-primary" style={{ backgroundColor: "#ef4444", padding: "5px 15px" }}>Delete</button>
+                                    </td>
+                                </tr>
+                            ))}
+                            {showcaseProjects.length === 0 && (
+                                <tr>
+                                    <td colSpan="5" style={{ ...tdStyle, textAlign: "center", color: "var(--text-muted)" }}>No projects found.</td>
                                 </tr>
                             )}
                         </tbody>

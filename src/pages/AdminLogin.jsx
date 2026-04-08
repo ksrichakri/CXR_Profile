@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { signInWithEmailAndPassword } from "firebase/auth"
 import { auth } from "../firebase/firebaseConfig"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, Link } from "react-router-dom"
 
 export default function AdminLogin() {
 
@@ -30,7 +30,8 @@ export default function AdminLogin() {
     }
 
     return (
-        <div className="inventory-sys-wrapper" style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}>
+        <div className="inventory-sys-wrapper" style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", position: "relative" }}>
+            <Link to="/" className="btn-primary" style={{ position: "absolute", top: "20px", left: "20px", textDecoration: "none" }}>&larr; Home</Link>
             <div className="glass-panel" style={{ width: "100%", maxWidth: "400px", padding: "40px" }}>
                 <h2 className="text-gradient" style={{ textAlign: "center", marginBottom: "30px", fontSize: "2rem" }}>Admin Portal</h2>
 
